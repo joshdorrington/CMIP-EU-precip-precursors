@@ -2,6 +2,8 @@ import argparse
 import xarray as xr
 import numpy as np
 import os
+import subprocess
+
 
 g = 9.80665
 
@@ -20,7 +22,7 @@ def parse_args():
                         help = 'root directory')
     parser.add_argument("--varname", default="zg", 
                         help = 'name of the variable to detrend')
-    parser.add_argument("--era5_cycle", default="/Data/gfi/share/ModData/CMIP_EU_Precip_Precursors/aux/cycles/ERA5.nc", 
+    parser.add_argument("--era5_cycle", default="/Data/skd/projects/global/cmip6_precursors/aux/cycles/ERA5.nc", 
                         help = 'file with the ERA5 seasonal cycle')
     parser.add_argument('--latmin', type=float, default=30, 
                         help='min lat')
@@ -39,16 +41,17 @@ def main(args):
     
     input_pattern = f'{input}/{file}'
     date_range = file.split('_')[6]
-
+    date_start, date_end = date_range.split('-')
+    date_end = date_end.split('.')[0]
+    date_start = f"{date_start[:4]}-{date_start[4:6]}-{date_start[6:]}"
+    date_end = f"{date_end[:4]}-{date_end[4:6]}-{date_end[6:]}"
     if not input_pattern :
         raise FileNotFoundError(f"No files found in : {input/input_pattern}")
 
     ds = xr.open_dataset(input_pattern)
     x = ds[args.varname]
     x.load()
-    print(date_range[0:8], date_range[9,16])
-
-    x = x.sel(time = slice(date_range[0:8], date_range[9,:]))
+    x = x.sel(time = slice(date_start, date_end))
 
     x_detrended = detrend_seasonal_cycle(x, args.era5_cycle, args.latmin, args.latmax)
     if args.varname.split :
@@ -56,8 +59,9 @@ def main(args):
     else :
         x_detrended = x_detrended.rename(f'{args.varname}')
 
-    output_pattern = f"{args.basedir}/{args.model}/z500_detrend/{args.experiment}/z500_detrend_day_{args.model}_{args.experiment}_{args.member}_gn_{date_range}.nc"
+    output_pattern = f"{args.basedir}/{args.model}/z500_detrend/{args.experiment}/z500_detrend_day_{args.model}_{args.experiment}_{args.member}_gn_{date_start}-{date_end}.nc"
     os.makedirs(os.path.dirname(output_pattern), exist_ok=True)
+    subprocess.run(['chmod','-R','g+wrx',os.path.dirname(output_pattern)])
     x_detrended.to_netcdf(output_pattern)
 
 
