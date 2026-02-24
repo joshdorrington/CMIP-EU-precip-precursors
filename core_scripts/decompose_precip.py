@@ -57,7 +57,7 @@ def parse_args(arg_list=None):
     parser.add_argument('--inputdir',type=str,default='/Data/skd/projects/global/cmip6_precursors/outputs/indices/',
                         help='Directory in which to look for indices.')
     
-    parser.add_argument('--auxdir',type=str,default='/Data/skd/projects/global/cmip6_precursors/outputs/aux/',
+    parser.add_argument('--auxdir',type=str,default='/Data/skd/projects/global/cmip6_precursors/aux/',
                     help='Directory in which to look for decomposition.py')
     
     parser.add_argument('--savedir',type=str,default='/Data/skd/projects/global/cmip6_precursors/outputs/decompositions/',
@@ -190,6 +190,7 @@ if __name__=='__main__':
     args = parse_args()
 
     sys.path.append(args.auxdir)
+    print(args.auxdir)
     from decomposition import decompose_hazard_odds_ratio, compute_terms_from_decomposition_with_alpha_blending
 
     condition_var=args.variables
