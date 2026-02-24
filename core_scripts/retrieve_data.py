@@ -36,31 +36,36 @@ def main(model,experiment,member, server=None):
                     member_id=member,
                     variable=variable,
                     select_plev=True,
-                    plev=85000, server=server)
+                    plev=85000, server=server,)
     retrieve_data_single_variable(model=model, 
                 experiment=experiment,
                 member_id=member,
                 variable='zg',
                 select_plev=True,
-                plev=50000, server=server)
+                plev=50000, server=server,)
     retrieve_data_single_variable(model=model, 
             experiment=experiment,
             member_id=member,
             variable='pr',
-            select_plev=False,server=server)
+            select_plev=False,server=server,)
             
 
-def retrieve_data_single_variable(model, experiment, member_id, variable, select_plev, plev=85000,**path_kwargs):
+def retrieve_data_single_variable(model, experiment, member_id, variable, select_plev, plev=85000,
+                                #   lon_range = (-100,60) , lat_range = (30,80),
+                                   **path_kwargs):
     path = cmip.esgf.get_path_CMIP6_data(model, experiment, member_id, variable, freq='day',table='day',**path_kwargs)
     if select_plev:
-        chunks = dict(plev=1, lon=50, lat=50, time=31*6)
+        chunks = dict(plev=1, lon=50, lat=50, time=365*15)
     else:
         chunks = dict(lon=50, lat=50, time=365*5)
     ds = xr.open_mfdataset(path, chunks = chunks, decode_times=CFDatetimeCoder(use_cftime=True))
+    # if ds.lon.max()>200:
+        # ds=ds.assign_coords(lon=ds.lon.where(ds.lon<180, ds.lon-360)).sortby('lon')
+    ds = ds.sel(lat=slice(0,90))
     if select_plev:
         ds = ds.assign_coords(plev=ds.plev.astype(int))
         ds = ds.sel(plev=plev)
-    ds=ds.load()
+    # ds=ds.load()
     if select_plev:
         variable_name=f"{variable[:1]}{plev//100:.0f}"
     else:
@@ -78,7 +83,7 @@ def retrieve_data_single_variable(model, experiment, member_id, variable, select
 
 if __name__=='__main__':
     args = parse_args()
-    cluster = LocalCluster(n_workers=10, memory_limit='8GiB')
+    cluster = LocalCluster(n_workers=8, memory_limit='10GiB')
     client = Client(cluster)
     print('Access dask dashboard: ', client.dashboard_link)
 
