@@ -4,6 +4,8 @@ import sys
 import os
 import argparse
 import xarray as xr
+import subprocess
+
 
 def parse_args(arg_list=None):
     parser = argparse.ArgumentParser(description="Use precursor indices and precipitation indices to decompose model bias and trends.")
@@ -103,6 +105,7 @@ def get_hist_data(args):
     for v in vars:
         vdir=f'{bp}{v}/{args.historical_experiment}/'
         os.makedirs(vdir,exist_ok=True)
+        subprocess.run(["chmod", "-R", "g+rwx", vdir], check=True)
         a0=[]
         for mem in mems:
             if not_ens:
@@ -148,6 +151,7 @@ def get_future_data(args):
     for v in vars:
         vdir=f'{bp}{v}/{args.future_experiment}/'
         os.makedirs(vdir,exist_ok=True)
+        subprocess.run(["chmod", "-R", "g+rwx", vdir], check=True)
         a0=[]
         for mem in mems:
             if not_ens:
@@ -241,8 +245,8 @@ if __name__=='__main__':
 
             os.makedirs('/'.join(decomp_path.split('/')[:-1]), exist_ok=True)
             os.makedirs('/'.join(term_path.split('/')[:-1]), exist_ok=True)
-            os.chmod('/'.join(decomp_path.split('/')[:-1]), 0o777)
-            os.chmod('/'.join(term_path.split('/')[:-1]), 0o777)
+            subprocess.run(["chmod", "-R", "g+rwx", ('/'.join(decomp_path.split('/')[:-1]))], check=True)
+            subprocess.run(["chmod", "-R", "g+rwx", '/'.join(term_path.split('/')[:-1])], check=True)
 
             decomposed_hazard.rename('decomposition').to_netcdf(decomp_path)
             bias_and_trend_terms.to_netcdf(term_path)
