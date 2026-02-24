@@ -8,6 +8,7 @@ import cmipaccess as cmip
 from dask.distributed import Client, LocalCluster
 from xarray.coding.times import CFDatetimeCoder
 from tqdm.notebook import tqdm
+import subprocess
 
 import logging
 logging.getLogger("distributed").setLevel(logging.WARNING)
@@ -68,7 +69,7 @@ def retrieve_data_single_variable(model, experiment, member_id, variable, select
     path = f'/Data/gfi/share/ModData/CMIP_EU_Precip_Precursors/raw/{model}/{variable_name}/{experiment}/'
     if not os.path.exists(path):
         os.makedirs(path)
-        os.chmod(path, mode=0o777)
+        subprocess.run(["chmod", "-R", "g+rwx", path], check=True)
     ds.to_netcdf(f'{path}/{file_name}')
     print('Downloading', file_name, 'successful!')
     print(f'Saved to {path}')
