@@ -55,10 +55,10 @@ def parse_args(arg_list=None):
     parser.add_argument('--lags', nargs='+', type=int, default=[0],
                     help='Which lag times to use.')
 
-    parser.add_argument('--inputdir',type=str,default='/Data/skd/projects/global/cmip6_precursors/',
+    parser.add_argument('--inputdir',type=str,default='/Data/gfi/share/ModData/CMIP_EU_Precip_Precursors/',
                         help='Directory in which to look for field data.')
     
-    parser.add_argument('--auxdir',type=str,default='/Data/gfi/share/ModData/CMIP_EU_Precip_Precursors/aux/',
+    parser.add_argument('--auxdir',type=str,default='/Data/skd/projects/global/cmip6_precursors/aux/',
                     help='Directory in which to look for reference cycle, precursor patterns and precursor coefficients.')
     
     parser.add_argument('--savedir',type=str,default='/Data/skd/projects/global/cmip6_precursors/outputs/indices/',
