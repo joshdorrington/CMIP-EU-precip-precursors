@@ -54,13 +54,13 @@ def parse_args(arg_list=None):
     parser.add_argument('--overwrite',action='store_true',
                         help='Overwrite metrics if they already exist.')
     
-    parser.add_argument('--inputdir',type=str,default='/Data/gfi/share/ModData/CMIP_EU_Precip_Precursors/indices/',
+    parser.add_argument('--inputdir',type=str,default='/Data/skd/projects/global/cmip6_precursors/outputs/indices/',
                         help='Directory in which to look for indices.')
     
-    parser.add_argument('--auxdir',type=str,default='/Data/gfi/share/ModData/CMIP_EU_Precip_Precursors/aux/',
+    parser.add_argument('--auxdir',type=str,default='/Data/skd/projects/global/cmip6_precursors/outputs/aux/',
                     help='Directory in which to look for decomposition.py')
     
-    parser.add_argument('--savedir',type=str,default='/Data/gfi/share/ModData/CMIP_EU_Precip_Precursors/decompositions/',
+    parser.add_argument('--savedir',type=str,default='/Data/skd/projects/global/cmip6_precursors/outputs/decompositions/',
                     help='Directory in which to save output.')
 
     return parser.parse_args(arg_list)
