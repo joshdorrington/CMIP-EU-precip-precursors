@@ -7,6 +7,7 @@ import pint_xarray
 from pint_xarray import unit_registry as ureg
 import flox.xarray
 import sys
+import subprocess
 
 def parse_args(arg_list=None):
     parser = argparse.ArgumentParser(description="Aggregate variable over ERA5 region masks.")
@@ -47,7 +48,7 @@ def parse_args(arg_list=None):
 def get_save_path(args):
     savedir=f'{args.savedir}{args.model}/{args.variable}/{args.experiment}/'
     os.makedirs(savedir,exist_ok=True)
-
+    subprocess.run(['chmod','-R','g+wrx',savedir])
     if args.member!='':
         savedir=savedir+f'member_{args.member}_'
     

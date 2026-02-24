@@ -5,6 +5,7 @@ import os
 import numpy as np
 from domino.core import IndexGenerator
 import itertools as it
+import subprocess
 
 ###
 #some debuggging code
@@ -78,6 +79,7 @@ def get_save_path(args):
     savedirs=[f'{args.savedir}{args.model}/{v}/{args.experiment}/' for v in args.variables]
     for savedir in savedirs:
         os.makedirs(savedir,exist_ok=True)
+        subprocess.run(['chmod','-R','g+wrx',savedir])
     
     if args.member!='':
         savedirs=[dir+f'member_{args.member}_' for dir in savedirs]
