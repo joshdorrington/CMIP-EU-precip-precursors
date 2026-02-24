@@ -1,4 +1,4 @@
-from dask.distributed import Client
+from dask.distributed import Client, LocalCluster
 import argparse
 import xarray as xr
 import os
@@ -301,8 +301,10 @@ var_name_dict={
 if __name__=='__main__':
 
     #use multi-core for speed
-    client=Client(n_workers=4,threads_per_worker=1)
-
+    cluster = LocalCluster(n_workers=8, memory_limit='4GiB')
+    client = Client(cluster)
+    print('Access dask dashboard: ', client.dashboard_link)
+    
     args = parse_args()
     if args.debug:
         decorate_all_functions(sys.modules[__name__], log_function_call)
