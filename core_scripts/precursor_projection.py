@@ -55,13 +55,13 @@ def parse_args(arg_list=None):
     parser.add_argument('--lags', nargs='+', type=int, default=[0],
                     help='Which lag times to use.')
 
-    parser.add_argument('--inputdir',type=str,default='/Data/gfi/share/ModData/CMIP_EU_Precip_Precursors/',
+    parser.add_argument('--inputdir',type=str,default='/Data/skd/projects/global/cmip6_precursors/outputs/',
                         help='Directory in which to look for field data.')
     
     parser.add_argument('--auxdir',type=str,default='/Data/gfi/share/ModData/CMIP_EU_Precip_Precursors/aux/',
                     help='Directory in which to look for reference cycle, precursor patterns and precursor coefficients.')
     
-    parser.add_argument('--savedir',type=str,default='/Data/gfi/share/ModData/CMIP_EU_Precip_Precursors/indices/',
+    parser.add_argument('--savedir',type=str,default='/Data/skd/projects/global/cmip6_precursors/outputs/indices/',
                     help='Directory in which to save output.')
     
     parser.add_argument('--precursorid',type=str,default='standard',
@@ -89,7 +89,7 @@ def get_save_path(args):
 def load_input_field(args,v,v_in_file):
     indir=f'{args.inputdir}raw/{args.model}/{v}/{args.experiment}/'
     filenames=[file for file in os.listdir(indir) if file.endswith('.nc')]
-
+    print(filenames)
     if args.member=='': #single model case
         if len(filenames)>1:
             raise(IOError(f'Expected single file in input directory {indir} when --member flag is absent. Found {len(filenames)}.'))
@@ -294,6 +294,7 @@ def project_onto_precursor_indices_and_save(ds,patterns,params,args):
     return
 
 var_name_dict={
+    'z500_detrend':'zg',
     'z500':'zg',
     'u850':'ua',
     'v850':'va'
@@ -301,7 +302,7 @@ var_name_dict={
 if __name__=='__main__':
 
     #use multi-core for speed
-    cluster = LocalCluster(n_workers=8, memory_limit='4GiB')
+    cluster = LocalCluster(n_workers=4, memory_limit='16GiB')
     client = Client(cluster)
     print('Access dask dashboard: ', client.dashboard_link)
     
