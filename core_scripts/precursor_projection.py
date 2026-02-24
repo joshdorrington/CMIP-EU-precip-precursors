@@ -89,7 +89,6 @@ def get_save_path(args):
 def load_input_field(args,v,v_in_file):
     indir=f'{args.inputdir}raw/{args.model}/{v}/{args.experiment}/'
     filenames=[file for file in os.listdir(indir) if file.endswith('.nc')]
-    print(filenames)
     if args.member=='': #single model case
         if len(filenames)>1:
             raise(IOError(f'Expected single file in input directory {indir} when --member flag is absent. Found {len(filenames)}.'))
