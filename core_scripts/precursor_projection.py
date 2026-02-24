@@ -294,7 +294,7 @@ def project_onto_precursor_indices_and_save(ds,patterns,params,args):
     return
 
 var_name_dict={
-    'z500_detrend':'zg',
+    'z500_detrend':'zg_detrend',
     'z500':'zg',
     'u850':'ua',
     'v850':'va'
