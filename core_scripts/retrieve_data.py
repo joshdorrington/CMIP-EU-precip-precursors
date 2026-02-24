@@ -57,7 +57,6 @@ def retrieve_data_single_variable(model, experiment, member_id, variable, select
     else:
         chunks = dict(lon=50, lat=50, time=365*5)
     ds = xr.open_mfdataset(path, chunks = chunks, decode_times=CFDatetimeCoder(use_cftime=True))
-    print(ds.plev)
     if select_plev:
         ds = ds.assign_coords(plev=ds.plev.astype(int))
         ds = ds.sel(plev=plev)
