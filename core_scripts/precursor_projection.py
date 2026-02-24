@@ -55,7 +55,7 @@ def parse_args(arg_list=None):
     parser.add_argument('--lags', nargs='+', type=int, default=[0],
                     help='Which lag times to use.')
 
-    parser.add_argument('--inputdir',type=str,default='/Data/skd/projects/global/cmip6_precursors/outputs/',
+    parser.add_argument('--inputdir',type=str,default='/Data/skd/projects/global/cmip6_precursors/',
                         help='Directory in which to look for field data.')
     
     parser.add_argument('--auxdir',type=str,default='/Data/gfi/share/ModData/CMIP_EU_Precip_Precursors/aux/',
