@@ -122,6 +122,8 @@ def to_mm_day(da):
     #     if 'units' in da.coords[coord].attrs:
     #         da.coords[coord].attrs['units'] = 'degrees'
     # da.attrs['units'] = 'kg / m 2/ s'
+    if da.attrs['units'] == 'kg m-2 s-1':
+        da.attrs['units']= 'kg m^-2 s^-1'
     da = da.pint.quantify()
     try:
         # Try direct conversion (e.g. mm/day, m/s)
