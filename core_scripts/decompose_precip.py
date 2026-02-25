@@ -187,10 +187,10 @@ def get_future_data(args):
     ds = ds.sel(time=slice(str(y0), str(y1)))
     return ds
 
-def get_savepaths(args,s,r):
+def get_savepaths(args,s,r,suff='csv'):
     s1=f'{args.savedir}/{args.model}/'
     
-    s2=f'{s}_region{r}.nc'
+    s2=f'{s}_region{r}.{suff}'
     return s1+'decomp_'+s2, s1+'terms_'+s2
 
 if __name__=='__main__':
@@ -199,7 +199,7 @@ if __name__=='__main__':
 
     sys.path.append(args.auxdir)
     print(args.auxdir)
-    from decomposition import decompose_hazard_odds_ratio, compute_terms_from_decomposition_with_alpha_blending
+    from decomposition import decompose_hazard_odds_ratio,decomp_to_pd_df,decomp_to_term_pd_df
 
     condition_var=args.variables
     if len(condition_var)==1:
@@ -243,13 +243,20 @@ if __name__=='__main__':
                                                         p_dvs=p_dvs,
                                                         quantile=p,bin_num=bin_num)
 
-            bias_and_trend_terms=compute_terms_from_decomposition_with_alpha_blending(*[decomposed_hazard[i] for i in range(6)])
-
+            decomposed_df=decomp_to_pd_df(decomposed_hazard.values)
+            
+            terms_df=decomp_to_term_pd_df(decomposed_hazard.values)
+            #sum the decomposed terms over all bins:
+            summed_terms_df=terms_df.groupby(
+                ["model","season","region_id", "source", "term"], 
+                as_index=False
+            )["value"].sum()
+            
             os.makedirs('/'.join(decomp_path.split('/')[:-1]), exist_ok=True)
             os.makedirs('/'.join(term_path.split('/')[:-1]), exist_ok=True)
             subprocess.run(["chmod", "-R", "g+rwx", ('/'.join(decomp_path.split('/')[:-1]))], check=True)
             subprocess.run(["chmod", "-R", "g+rwx", '/'.join(term_path.split('/')[:-1])], check=True)
 
-            decomposed_hazard.rename('decomposition').to_netcdf(decomp_path)
-            bias_and_trend_terms.to_netcdf(term_path)
+            decomposed_df.to_csv(decomp_path)
+            summed_terms_df.to_csv(term_path)
 
