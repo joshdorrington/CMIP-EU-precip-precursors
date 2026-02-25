@@ -331,6 +331,97 @@ def compute_terms_from_decomposition_with_alpha_blending(Ph_s_0,Ph_s_h,Ph_s_f,P_
 
     ds=xr.merge([coefficient_da,individual_term_da,beta_da,contribution_da])
     return ds
+    
+def decomp_to_pd_df(arr,model,season,region_id):
+"""
+Takes in a set of 6x(binsize+2) decomp parameters.
+Returns a dataframe with columns:
+  model [string], user passed.
+  season [string], user passed.
+  region_id [int or string], user passed.
+  bin  [int]
+  source ['conversion' or 'dynamical']
+  period ['reference', 'historical' or 'future']
+  value [float]
+Expected number of rows = 6x(bin_num+2)
+"""
+    Ph_s_0, Ph_s_h, Ph_s_f, P_s_0, P_s_h, P_s_f = arr.values
+
+    data=dict(
+    dyn_ref= (P_s_0,'dynamical','reference'),
+    dyn_hst= (P_s_h,'dynamical','historical'),
+    dyn_ftr= (P_s_f,'dynamical','future'),
+    cnv_ref= (Ph_s_0,'conversion','reference'),
+    cnv_hst= (Ph_s_h,'conversion','historical'),
+    cnv_ftr= (Ph_s_f,'conversion','future')
+    )
+    decomp_rows=[]
+
+    for name, (vals, s1, s2) in data.items():
+        for b, v in enumerate(vals, 1):
+            decomp_rows.append({"model": model, "season": season,
+                        "region_id":region_id, "bin": b,
+                        "source": s1, "period": s2, "value": v})
+                        
+    return pd.DataFrame(decomp_rows)
+
+def decomp_to_term_pd_df(arr,model, season, region_id):
+"""
+Takes in a set of 6x(binsize+2) decomp parameters.
+Returns a dataframe with columns:
+  model [string], user passed.
+  season [string], user passed.
+  region_id [int or string], user passed.
+  bin  [int]
+  source ['conversion', 'dynamical' or 'nonlinear']
+  term ['bias', 'change' or 'uncalibrated_change']
+  value [float]
+  Expected number of rows = 9x(bin_num+2)
+"""
+
+    Ph_s_0, Ph_s_h, Ph_s_f, P_s_0, P_s_h, P_s_f = arr.values
+    
+    # for numerical stability
+    epsilon=1e-12  
+    Ph_s_0=Ph_s_0+epsilon
+    Ph_s_h=Ph_s_h+epsilon
+
+    #mult-> to-> add therm alpha for very biased cases
+    blending_pow=4
+    blending_param=0.1
+    w=blending_function(Ph_s_h,Ph_s_0,blending_pow,blending_param)
+
+    delta_P_s=P_s_h-P_s_0
+    Delta_P_s=P_s_f-P_s_h
+
+    xi=(Ph_s_h/Ph_s_0)-1
+    alpha=(1-w)*Ph_s_f/Ph_s_0 + w*((Ph_s_f/Ph_s_h) -1)#equiv to 1+alpha =Ph_s_f/Ph_s_h in most cases
+
+    raw_alpha=(Ph_s_f/Ph_s_h) -1
+
+    data=dict(
+        dyn_bias= (delta_P_s*Ph_s_0,'dynamical','bias'),
+        cnv_bias= (P_s_0*xi*Ph_s_0,'conversion','bias'),
+        nlr_bias= (delta_P_s*xi*Ph_s_0,'nonlinear','bias'),
+
+        dyn_caltrend=(Delta_P_s*Ph_s_0,'dynamical','change'),
+        cnv_caltrend=(P_s_0*alpha*Ph_s_0,'conversion','change'),
+        nlr_caltrend=(Delta_P_s*alpha*Ph_s_0,'nonlinear','change'),
+
+        dyn_rawtrend=(Delta_P_s*Ph_s_h,'dynamical','uncalibrated_change'),
+        cnv_rawtrend=(P_s_h*raw_alpha*Ph_s_h,'conversion','uncalibrated_change'),
+        nlr_rawtrend=(Delta_P_s*raw_alpha*Ph_s_h,'nonlinear','uncalibrated_change')
+    )
+
+    term_rows=[]
+    for name, (vals, s1, s2) in data.items():
+        for b, v in enumerate(vals, 1):
+            term_rows.append({"model": model, "season": season,
+                        "region_id":region_id, "bin": b,
+                        "source": s1, "term": s2, "value": v})
+            
+    return pd.DataFrame(term_rows)
+
 
 
 
