@@ -226,6 +226,7 @@ if __name__=='__main__':
     make_h_var_cat=True
     p=args.eventthreshold
     bin_num=args.nprecursorbins
+    model=args.model
     for s in args.seasons:
         for r in args.regions:
             decomp_path,term_path=get_savepaths(args,s,r)
@@ -242,11 +243,14 @@ if __name__=='__main__':
                                                         make_h_var_cat=make_h_var_cat,
                                                         p_dvs=p_dvs,
                                                         quantile=p,bin_num=bin_num)
+            #format the decomposed quantities
+            decomposed_df=decomp_to_pd_df(decomposed_hazard.values,model,s,r)
 
-            decomposed_df=decomp_to_pd_df(decomposed_hazard.values)
+            #compute and format decomposition terms.
+            #We don't currently save this.
+            terms_df=decomp_to_term_pd_df(decomposed_hazard.values,model,s,r)
             
-            terms_df=decomp_to_term_pd_df(decomposed_hazard.values)
-            #sum the decomposed terms over all bins:
+            #sum the terms over all bins, which we do save:
             summed_terms_df=terms_df.groupby(
                 ["model","season","region_id", "source", "term"], 
                 as_index=False
