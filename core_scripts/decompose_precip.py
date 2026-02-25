@@ -15,7 +15,7 @@ def parse_args(arg_list=None):
                         help='name of model to use.')
 
     parser.add_argument('--future_experiment', type=str, required=True,
-                        help='Future simulation to compute changes for, e.g. ssp370.')
+                        help='Future simulation to compute changes for, e.g. ssp370. Pass "none" for bias-only analysis.')
     
     
     # Optional arguments
@@ -139,6 +139,10 @@ def get_hist_data(args):
     return ds
 
 def get_future_data(args):
+    #Supports bias only analysis
+    if args.future_experiment is "none":
+        return None
+        
     bp=f'{args.inputdir}{args.model}/'
 
     # vars=np.atleast_1d(args.variables).append(args.hazardvariable)
@@ -183,10 +187,10 @@ def get_future_data(args):
     ds = ds.sel(time=slice(str(y0), str(y1)))
     return ds
 
-def get_savepaths(args,s,r):
+def get_savepaths(args,s,r,suff='csv'):
     s1=f'{args.savedir}/{args.model}/'
     
-    s2=f'{s}_region{r}.nc'
+    s2=f'{s}_region{r}.{suff}'
     return s1+'decomp_'+s2, s1+'terms_'+s2
 
 if __name__=='__main__':
@@ -195,7 +199,7 @@ if __name__=='__main__':
 
     sys.path.append(args.auxdir)
     print(args.auxdir)
-    from decomposition import decompose_hazard_odds_ratio, compute_terms_from_decomposition_with_alpha_blending
+    from decomposition import decompose_hazard_odds_ratio,decomp_to_pd_df,decomp_to_term_pd_df
 
     condition_var=args.variables
     if len(condition_var)==1:
@@ -222,32 +226,41 @@ if __name__=='__main__':
     make_h_var_cat=True
     p=args.eventthreshold
     bin_num=args.nprecursorbins
+    model=args.model
     for s in args.seasons:
         for r in args.regions:
             decomp_path,term_path=get_savepaths(args,s,r)
 
-            # decomposed_hazard=decompose_hazard_odds_ratio(ref_data.sel(season=s,region=r),
-            #                                               hist_data.sel(season=s,region=r),
-            #                                               future_data.sel(season=s,region=r),
-            #                                             hazard_var,condition_var,
-            #                                             make_h_var_cat=make_h_var_cat,
-            #                                             p_dvs=p_dvs,
-            #                                             quantile=p,bin_num=bin_num)
-            decomposed_hazard=decompose_hazard_odds_ratio(ref_data.sel(season=s,region_id=r),
-                                                          hist_data.sel(season=s,region_id=r),
-                                                          future_data.sel(season=s,region_id=r),
+            rd=ref_data.sel(season=s,region_id=r)
+            hd=hist_data.sel(season=s,region_id=r)
+            if future_data is None:
+                fd=hd
+            else:
+                fd=future_data.sel(season=s,region_id=r)
+                
+            decomposed_hazard=decompose_hazard_odds_ratio(rd,hd,fd,                                                      
                                                         hazard_var,condition_var,
                                                         make_h_var_cat=make_h_var_cat,
                                                         p_dvs=p_dvs,
                                                         quantile=p,bin_num=bin_num)
+            #format the decomposed quantities
+            decomposed_df=decomp_to_pd_df(decomposed_hazard.values,model,s,r)
 
-            bias_and_trend_terms=compute_terms_from_decomposition_with_alpha_blending(*[decomposed_hazard[i] for i in range(6)])
-
+            #compute and format decomposition terms.
+            #We don't currently save this.
+            terms_df=decomp_to_term_pd_df(decomposed_hazard.values,model,s,r)
+            
+            #sum the terms over all bins, which we do save:
+            summed_terms_df=terms_df.groupby(
+                ["model","season","region_id", "source", "term"], 
+                as_index=False
+            )["value"].sum()
+            
             os.makedirs('/'.join(decomp_path.split('/')[:-1]), exist_ok=True)
             os.makedirs('/'.join(term_path.split('/')[:-1]), exist_ok=True)
             subprocess.run(["chmod", "-R", "g+rwx", ('/'.join(decomp_path.split('/')[:-1]))], check=True)
             subprocess.run(["chmod", "-R", "g+rwx", '/'.join(term_path.split('/')[:-1])], check=True)
 
-            decomposed_hazard.rename('decomposition').to_netcdf(decomp_path)
-            bias_and_trend_terms.to_netcdf(term_path)
+            decomposed_df.to_csv(decomp_path)
+            summed_terms_df.to_csv(term_path)
 
