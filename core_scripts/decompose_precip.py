@@ -15,7 +15,7 @@ def parse_args(arg_list=None):
                         help='name of model to use.')
 
     parser.add_argument('--future_experiment', type=str, required=True,
-                        help='Future simulation to compute changes for, e.g. ssp370.')
+                        help='Future simulation to compute changes for, e.g. ssp370. Pass "none" for bias-only analysis.')
     
     
     # Optional arguments
@@ -139,6 +139,10 @@ def get_hist_data(args):
     return ds
 
 def get_future_data(args):
+    #Supports bias only analysis
+    if args.future_experiment is "none":
+        return None
+        
     bp=f'{args.inputdir}{args.model}/'
 
     # vars=np.atleast_1d(args.variables).append(args.hazardvariable)
@@ -226,16 +230,14 @@ if __name__=='__main__':
         for r in args.regions:
             decomp_path,term_path=get_savepaths(args,s,r)
 
-            # decomposed_hazard=decompose_hazard_odds_ratio(ref_data.sel(season=s,region=r),
-            #                                               hist_data.sel(season=s,region=r),
-            #                                               future_data.sel(season=s,region=r),
-            #                                             hazard_var,condition_var,
-            #                                             make_h_var_cat=make_h_var_cat,
-            #                                             p_dvs=p_dvs,
-            #                                             quantile=p,bin_num=bin_num)
-            decomposed_hazard=decompose_hazard_odds_ratio(ref_data.sel(season=s,region_id=r),
-                                                          hist_data.sel(season=s,region_id=r),
-                                                          future_data.sel(season=s,region_id=r),
+            rd=ref_data.sel(season=s,region_id=r)
+            hd=hist_data.sel(season=s,region_id=r)
+            if future_data is None:
+                fd=hd
+            else:
+                fd=future_data.sel(season=s,region_id=r)
+                
+            decomposed_hazard=decompose_hazard_odds_ratio(rd,hd,fd,                                                      
                                                         hazard_var,condition_var,
                                                         make_h_var_cat=make_h_var_cat,
                                                         p_dvs=p_dvs,
