@@ -3,7 +3,7 @@ import xarray as xr
 import numpy as np
 import os
 import subprocess
-
+import glob
 
 g = 9.80665
 
@@ -34,19 +34,19 @@ def parse_args():
 
 def main(args):
     
-    input = f"{args.basedir}/{args.model}/z500/{args.experiment}/"
-    file=[files for files in os.listdir(input) if files.endswith('.nc')]
-    if len(file) == 1:
-        file = file[0]
+    input_dir = f"{args.basedir}/{args.model}/z500/{args.experiment}/"
+    file_dir = glob.glob(f"{input_dir}/*{args.member}*.nc")
+    if len(file_dir) > 0:
+        file = file_dir[0].split('/')[-1]
     
-    input_pattern = f'{input}/{file}'
+    input_pattern = f'{input_dir}/{file}'
     date_range = file.split('_')[6]
     date_start, date_end = date_range.split('-')
     date_end = date_end.split('.')[0]
     date_start = f"{date_start[:4]}-{date_start[4:6]}-{date_start[6:]}"
     date_end = f"{date_end[:4]}-{date_end[4:6]}-{date_end[6:]}"
     if not input_pattern :
-        raise FileNotFoundError(f"No files found in : {input/input_pattern}")
+        raise FileNotFoundError(f"No files found in : {input_dir/input_pattern}")
 
     ds = xr.open_dataset(input_pattern)
     x = ds[args.varname]
@@ -58,7 +58,8 @@ def main(args):
         x_detrended = x_detrended.rename(f'{args.varname}_detrend')
     else :
         x_detrended = x_detrended.rename(f'{args.varname}')
-
+    date_start = ''.join(date_start.split('-'))
+    date_end = ''.join(date_end.split('-'))
     output_pattern = f"{args.basedir}/{args.model}/z500_detrend/{args.experiment}/z500_detrend_day_{args.model}_{args.experiment}_{args.member}_gn_{date_start}-{date_end}.nc"
     os.makedirs(os.path.dirname(output_pattern), exist_ok=True)
     subprocess.run(['chmod','-R','g+wrx',os.path.dirname(output_pattern)])
@@ -69,7 +70,7 @@ def main(args):
 
 def detrend_seasonal_cycle(x, era5_cycle, latmin, latmax):
     # Subset latitudes
-    x = x.sel(lat = slice(latmin, latmax))
+    x = x.sel(lat = slice(latmin, latmax), )
 
     # Weighted mean lat/lon
     weights = np.cos(np.deg2rad(x.lat))
