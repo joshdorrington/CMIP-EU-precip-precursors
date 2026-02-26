@@ -140,7 +140,7 @@ def get_hist_data(args):
 
 def get_future_data(args):
     #Supports bias only analysis
-    if args.future_experiment is "none":
+    if args.future_experiment == "none":
         return None
         
     bp=f'{args.inputdir}{args.model}/'
