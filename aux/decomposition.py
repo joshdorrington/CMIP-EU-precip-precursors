@@ -333,18 +333,18 @@ def compute_terms_from_decomposition_with_alpha_blending(Ph_s_0,Ph_s_h,Ph_s_f,P_
     return ds
     
 def decomp_to_pd_df(arr,model,season,region_id):
-"""
-Takes in a set of 6x(binsize+2) decomp parameters.
-Returns a dataframe with columns:
-  model [string], user passed.
-  season [string], user passed.
-  region_id [int or string], user passed.
-  bin  [int]
-  source ['conversion' or 'dynamical']
-  period ['reference', 'historical' or 'future']
-  value [float]
-Expected number of rows = 6x(bin_num+2)
-"""
+    """
+    Takes in a set of 6x(binsize+2) decomp parameters.
+    Returns a dataframe with columns:
+    model [string], user passed.
+    season [string], user passed.
+    region_id [int or string], user passed.
+    bin  [int]
+    source ['conversion' or 'dynamical']
+    period ['reference', 'historical' or 'future']
+    value [float]
+    Expected number of rows = 6x(bin_num+2)
+    """
     Ph_s_0, Ph_s_h, Ph_s_f, P_s_0, P_s_h, P_s_f = arr.values
 
     data=dict(
@@ -366,18 +366,18 @@ Expected number of rows = 6x(bin_num+2)
     return pd.DataFrame(decomp_rows)
 
 def decomp_to_term_pd_df(arr,model, season, region_id):
-"""
-Takes in a set of 6x(binsize+2) decomp parameters.
-Returns a dataframe with columns:
-  model [string], user passed.
-  season [string], user passed.
-  region_id [int or string], user passed.
-  bin  [int]
-  source ['conversion', 'dynamical' or 'nonlinear']
-  term ['bias', 'change' or 'uncalibrated_change']
-  value [float]
-  Expected number of rows = 9x(bin_num+2)
-"""
+    """
+    Takes in a set of 6x(binsize+2) decomp parameters.
+    Returns a dataframe with columns:
+    model [string], user passed.
+    season [string], user passed.
+    region_id [int or string], user passed.
+    bin  [int]
+    source ['conversion', 'dynamical' or 'nonlinear']
+    term ['bias', 'change' or 'uncalibrated_change']
+    value [float]
+    Expected number of rows = 9x(bin_num+2)
+    """
 
     Ph_s_0, Ph_s_h, Ph_s_f, P_s_0, P_s_h, P_s_f = arr.values
     
